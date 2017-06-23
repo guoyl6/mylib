@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta charset="utf-8"/>
+	<title>pubsub</title>
+	<script type="text/javascript" src="F:/lib/javascript/jquery/jquery-1.11.0.js"></script>
+	<script type="text/javascript" src="F:/lib/javascript/bootstrap/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+	<link rel="stylesheet" href="F:/lib/javascript/bootstrap/bootstrap-3.3.7-dist/css/bootstrap.min.css">
+
+	<script type="text/javascript" src="../jquery.pubsub.js"></script>
+	<script type="text/javascript">
+		$(function() {
+			var $log = $("#log");
+			var log = function(succeed, msg) {
+				$log.append(
+					$("<p class='input-lg'></p>")
+					.addClass(!succeed ? "bg-danger text-danger" : "bg-success text-success")
+					.text('test: ' + msg)
+				);
+			}, info = function(msg) {
+				$log.append($("<p class='input-lg text-info bg-info'></p>").text(msg));
+			};
+			info('start test');
+			var count = {};
+			var test = function(ev, num) {
+				obj.str = '';
+				count[ev] = count[ev] || 1;
+				info('subscribe ' + ev + ' ' + count[ev]++ + ' times');
+				pubsub.subscribe(ev, function(obj, other) {
+					obj.str += ev + (other ? other : '');
+				})
+				var random = Math.floor(Math.random() * 100);
+				info('publish ' + ev + ' with ' + random);
+				pubsub.publish(ev, obj, random);
+				var succeed = obj.str == (ev + random).repeat(num);
+				log(succeed, succeed ? 'succeed' : 'fail -> ' + obj.str);
+			}
+			var pubsub = $.pubsub(), obj = {str: ''};
+
+			test('ev1', 1);
+			test('ev2', 1);
+			test('ev3', 1);
+
+			test('ev1', 2);
+
+				
+
+		})
+	</script>
+</head>
+
+<body>
+	<header>
+		<h1 class="text-center"><small>test pubsub</small></h1>
+	</header>
+	<div class="container">
+		<div class="row">
+			<div class="col-md-8 col-md-offset-2" id="log">
+				
+			</div>
+		</div>
+	</div>
+</body>
+</html>

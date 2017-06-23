@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta charset="utf-8"/>
+	<title>title</title>
+	<script type="text/javascript" src="F:/lib/javascript/jquery/jquery-1.11.0.js"></script>
+	<script type="text/javascript" src="F:/lib/javascript/bootstrap/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+	<link rel="stylesheet" href="F:/lib/javascript/bootstrap/bootstrap-3.3.7-dist/css/bootstrap.min.css">
+
+	<script type="text/javascript" src="../jquery.pubsub.js"></script>
+	<script type="text/javascript" src="../jquery.Activity.js"></script>
+	<script type="text/javascript">
+		$(function() {
+				
+			var randomWords = function() {
+				return new Array(Math.floor(Math.random() * 3) + 1).join('abc ')
+			}, msg = function(tag) {
+				var args = [].slice.call(arguments, 1);
+				return $('<div></div>').text(tag + ": " + JSON.stringify(args) + " - " + Date.now());
+			};
+			var evs = ['ev1', 'ev2', 'ev3'];
+
+			var getActivity = function() {
+				var test = $.Activity();
+
+				test.subscribe('before', function(words, str) {
+					$("#beforeMsg").append(msg('before', words, str));
+				});
+
+				var count = 1;
+				evs.forEach(function(ev) {
+					test.subscribe(ev, function(words, str) {
+						$("#notifyMsg").append(msg(count++ + "、 " + ev, words, str));
+					}).subscribe(ev, function(words, str) {
+						$("#notifyMsg").append(msg(count++ + "、 " + ev, words, str));
+					})
+				});
+
+				test.ondone(function(words, str) {
+					$("#resolveMsg").append(msg('resolve', words, str));
+				});
+
+				test.onabort(function(words, str) {
+					$("#abortMsg").append(msg('resolve', words, str));
+				});
+				return test;
+			}
+
+			var test = getActivity();
+
+			;
+			['start', 'notify', 'abort', 'lock', 'unlock', 'resolve', 'wait', 'release'].forEach(function(id) {
+				$("#" + id).click(function(e) {
+					var words = randomWords();
+					$("#state_prev").text(test.getState());
+					if (id == 'notify') {
+						test[id](evs[Math.floor(Math.random() * evs.length)], words);
+					} else {
+						test[id](words, 'test');
+					}
+					$("#state").text(test.getState());
+					
+				})
+			})
+
+			$("#resolve").on('click', function() {
+				setTimeout(function() {
+					test.ondone(function() {
+						console.log('after click resolve');
+					})
+				})
+				
+			})
+			$("#abort").on('click', function() {
+				setTimeout(function() {
+					test.onabort(function() {
+						console.log('after click resolve');
+					})
+				})
+				
+			})
+
+		})
+	</script>
+</head>
+
+<body>
+	<header>
+		<h1 class="text-center"><small>test</small></h1>
+	</header>
+	<div class="container">
+		<div class="row">
+			<div class="col-md-7 col-md-offset-1">
+				<div class="btn-group text-center">
+					<button class="btn btn-default" id='start'>start</button>
+					<button class="btn btn-default" id='notify'>notify</button>
+					<button class="btn btn-default" id='lock'>lock</button>
+					<button class="btn btn-default" id='unlock'>unlock</button>
+					<button class="btn btn-default" id='wait'>wait</button>
+					<button class="btn btn-default" id='release'>release</button>
+					<button class="btn btn-default" id='abort'>abort</button>
+					<button class="btn btn-default" id='resolve'>resolve</button>
+				</div>
+				
+				
+			</div>
+			<div class="col-xs-4 col-xs-offset-1 col-md-2 col-md-offset-0">
+				<p class="text-info alert" id='state_prev'>prevState</p>
+			</div>
+			<div class="col-xs-4 col-xs-offset-2 col-md-2 col-md-offset-0">
+				<p class="text-info alert" id='state'>nowState</p>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-6 col-md-offset-3">
+				<div class="alert alert-success" id="beforeMsg"></div>
+				<div class="alert alert-info" id="notifyMsg"></div>
+				<div class="alert alert-danger" id="abortMsg"></div>
+				<div class="alert alert-success" id="resolveMsg"></div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
