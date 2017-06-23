@@ -45,7 +45,7 @@
 				list = [];
 			},
 			get: function() {
-				return list;
+				return list.slice();
 			},
 			
 		}
@@ -57,7 +57,17 @@
 
 		$.extend(this, {
 			subscribe: function(topic, fns) {
-				topics[topic] = topics[topic] || myCallbacks();
+
+				if (!(topic in topics)) {
+					var rt = this.parseTopic(topic),
+					    callbacks = this.createCallbacks();
+					Object.defineProperty(topics, topic, {
+						get: function() {
+							return callbacks;
+						}
+					})
+				}
+
 				var cb = topics[topic];
 				for (var i = 1, len = arguments.length; i < len; i++) {
 					cb.add(arguments[i]);
@@ -124,6 +134,14 @@
 
 
 		})
+	}
+
+	pubsub.prototype.parseTopic = function(topic) {
+		return topic;
+	}
+
+	pubsub.prototype.createCallbacks = function() {
+		return topic;
 	}
 
 
